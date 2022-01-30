@@ -23,6 +23,7 @@ struct HomeView: View {
                 showPicker.toggle()
             } label:  {
                 Text("Show Image Color Picker ")
+                    .foregroundColor(selectedColor.isDarkColor ? .white : .black)
             }
         }
         // MARK: Calling Modifier

@@ -37,9 +37,21 @@ struct ColorPickerHelperView: View {
                 // MARK: Image Picker View
                 GeometryReader { proxy in
                     
+                    let size = proxy.size
+                    
                     VStack(spacing: 12) {
-                        
-                        
+                        if let image = UIImage(data: imageData) {
+                            Image(uiImage: image)
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: size.width, height: size.height)
+                        } else {
+                            Image(systemName: "plus")
+                                .font(.system(size: 35))
+                            
+                            Text("Tap to add an Image")
+                                .font(.system(size: 14, weight: .light))
+                        }
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                     .contentShape(Rectangle())
@@ -153,7 +165,8 @@ struct CustomColorPicker: UIViewControllerRepresentable {
     }
     
     func updateUIViewController(_ uiViewController: UIColorPickerViewController, context: Context) {
-        
+        // Changing Tint Color
+        uiViewController.view.tintColor = (color.isDarkColor ? .white : .black)
     }
     
     // MARK: Delegate Methods
@@ -172,5 +185,22 @@ struct CustomColorPicker: UIViewControllerRepresentable {
         func colorPickerViewController(_ viewController: UIColorPickerViewController, didSelect color: UIColor, continuously: Bool) {
             parent.color = Color(color)
         }
+    }
+}
+
+// MARK: Extension to find if selected color is dark or light
+extension Color {
+    var isDarkColor: Bool {
+        return UIColor(self).isDarkColor
+    }
+}
+
+extension UIColor {
+    var isDarkColor: Bool {
+        var (r, g, b, a): (CGFloat, CGFloat, CGFloat, CGFloat) = (0, 0, 0, 0)
+        self.getRed(&r, green: &g, blue: &b, alpha: &a)
+        let lum = 0.2126 * r + 0.7152 * g + 0.0722 * b
+        
+        return lum < 0.50
     }
 }
