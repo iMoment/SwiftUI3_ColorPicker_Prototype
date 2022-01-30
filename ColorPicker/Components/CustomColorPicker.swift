@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import PhotosUI
 
 // MARK: Extension to call Image Color Picker
 extension View {
@@ -29,12 +30,38 @@ struct ColorPickerHelperView: View {
         NavigationView {
             
             VStack(spacing: 10) {
-                // Only need live picker button, hack by setting height to clip content
-                CustomColorPicker(color: $color)
-                    .frame(width: 100, height: 50, alignment: .topLeading)
-                    .clipped()
-                    .offset(x: 20)
+                // MARK: Image Picker View
+                GeometryReader { proxy in
+                    
+                    VStack(spacing: 12) {
+                        
+                        Image(systemName: "plus")
+                            .font(.system(size: 35))
+                        
+                        Text("Tap to add an Image")
+                            .font(.system(size: 14, weight: .light))
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        // Show Image Picker
+                    }
+                }
+                
+                ZStack(alignment: .top) {
+                    // Displaying selected Color
+                    Rectangle()
+                        .fill(color)
+                        .frame(height: 90)
+                    // Only need live picker button, hack by setting height to clip content
+                    CustomColorPicker(color: $color)
+                        .frame(width: 100, height: 50, alignment: .topLeading)
+                        .clipped()
+                        .offset(x: 15)
+                }
+               
             }
+            .ignoresSafeArea(.container, edges: .bottom)
             .navigationTitle("Image Color Picker")
             .navigationBarTitleDisplayMode(.inline)
             // MARK: Close Button
@@ -45,6 +72,25 @@ struct ColorPickerHelperView: View {
             }
         }
     }
+}
+
+// MARK: Image Picker using New PhotosUI API
+struct ImagePicker: UIViewControllerRepresentable {
+    func makeUIViewController(context: Context) -> some PHPickerViewController {
+        var config = PHPickerConfiguration()
+        config.selectionLimit = 1
+        
+        let picker = PHPickerViewController(configuration: config)
+        picker.delegate = context.coordinator
+        
+        return picker
+    }
+    
+    func updateUIViewController(_ uiViewController: PHPickerViewController, context: Context) {
+        
+    }
+    
+    // Fetching Selected Image
 }
 
 // MARK: Custom Color Picker with help from UIColorPicker
