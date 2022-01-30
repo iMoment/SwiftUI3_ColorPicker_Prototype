@@ -26,6 +26,10 @@ struct ColorPickerHelperView: View {
     @Binding var showPicker: Bool
     @Binding var color: Color
     
+    // Image Picker value
+    @State var showImagePicker: Bool = false
+    @State var imageData: Data = .init(count: 0)
+    
     var body: some View {
         NavigationView {
             
@@ -35,16 +39,13 @@ struct ColorPickerHelperView: View {
                     
                     VStack(spacing: 12) {
                         
-                        Image(systemName: "plus")
-                            .font(.system(size: 35))
                         
-                        Text("Tap to add an Image")
-                            .font(.system(size: 14, weight: .light))
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                     .contentShape(Rectangle())
                     .onTapGesture {
                         // Show Image Picker
+                        showImagePicker.toggle()
                     }
                 }
                 
@@ -70,13 +71,26 @@ struct ColorPickerHelperView: View {
                     showPicker.toggle()
                 }
             }
+            .sheet(isPresented: $showImagePicker) {
+                
+            } content: {
+                ImagePicker(showPicker: $showImagePicker, imageData: $imageData)
+            }
+
         }
     }
 }
 
 // MARK: Image Picker using New PhotosUI API
 struct ImagePicker: UIViewControllerRepresentable {
-    func makeUIViewController(context: Context) -> some PHPickerViewController {
+    @Binding var showPicker: Bool
+    @Binding var imageData: Data
+    
+    func makeCoordinator() -> Coordinator {
+        return Coordinator(parent: self)
+    }
+    
+    func makeUIViewController(context: Context) -> PHPickerViewController {
         var config = PHPickerConfiguration()
         config.selectionLimit = 1
         
@@ -91,6 +105,30 @@ struct ImagePicker: UIViewControllerRepresentable {
     }
     
     // Fetching Selected Image
+    class Coordinator: NSObject, PHPickerViewControllerDelegate {
+        var parent: ImagePicker
+        
+        init(parent: ImagePicker) {
+            self.parent = parent
+        }
+        
+        func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
+            if let first = results.first {
+                first.itemProvider.loadObject(ofClass: UIImage.self) {[self] result, err in
+                    guard let image = result as? UIImage else {
+                        parent.showPicker.toggle()
+                        return
+                    }
+                    
+                    parent.imageData = image.jpegData(compressionQuality: 1) ?? .init(count: 0)
+                    // Closing Picker
+                    parent.showPicker.toggle()
+                }
+            } else {
+                parent.showPicker.toggle()
+            }
+        }
+    }
 }
 
 // MARK: Custom Color Picker with help from UIColorPicker
