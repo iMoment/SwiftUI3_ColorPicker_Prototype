@@ -15,8 +15,35 @@ extension View {
             .fullScreenCover(isPresented: showPicker) {
                 
             } content: {
-                
+                ColorPickerHelperView(showPicker: showPicker, color: color)
             }
+    }
+}
+
+// MARK: Custom View for Color Picker
+struct ColorPickerHelperView: View {
+    @Binding var showPicker: Bool
+    @Binding var color: Color
+    
+    var body: some View {
+        NavigationView {
+            
+            VStack(spacing: 10) {
+                // Only need live picker button, hack by setting height to clip content
+                CustomColorPicker(color: $color)
+                    .frame(width: 100, height: 50, alignment: .topLeading)
+                    .clipped()
+                    .offset(x: 20)
+            }
+            .navigationTitle("Image Color Picker")
+            .navigationBarTitleDisplayMode(.inline)
+            // MARK: Close Button
+            .toolbar {
+                Button("Close") {
+                    showPicker.toggle()
+                }
+            }
+        }
     }
 }
 
@@ -33,6 +60,10 @@ struct CustomColorPicker: UIViewControllerRepresentable {
         let picker = UIColorPickerViewController()
         picker.supportsAlpha = false
         picker.selectedColor = UIColor(color)
+        
+        // Connecting Delegate
+        picker.delegate = context.coordinator
+        picker.title = ""
         
         return picker
     }
